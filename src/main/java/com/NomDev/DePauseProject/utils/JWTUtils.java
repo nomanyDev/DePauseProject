@@ -6,7 +6,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
@@ -65,11 +64,11 @@ public class JWTUtils {
      * Извлечение данных из токена
      */
     private <T> T extractClaims(String token, Function<Claims, T> claimsResolver) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        Claims claims = Jwts.parser() // Используем parserBuilder()
+                .setSigningKey(key) // Устанавливаем ключ подписи
+                .build() // Строим JwtParser
+                .parseClaimsJws(token) // Разбираем JWT
+                .getBody(); // Извлекаем Claims
         return claimsResolver.apply(claims);
     }
 }

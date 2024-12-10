@@ -35,14 +35,16 @@ public class Utils {
     public static UserDTO mapUserToDTO(User user) {
         UserDTO userDTO = new UserDTO();
         userDTO.setId(user.getId());
-        userDTO.setName(user.getName());
+        userDTO.setFirstName(user.getFirstName());
+        userDTO.setLastName(user.getLastName());
         userDTO.setEmail(user.getEmail());
         userDTO.setProfilePhotoUrl(user.getProfilePhotoUrl());
+        userDTO.setBirthDate(user.getBirthDate());
         userDTO.setAge(user.getAge());
         userDTO.setGender(user.getGender());
         userDTO.setPhoneNumber(user.getPhoneNumber());
         userDTO.setTelegramNickname(user.getTelegramNickname());
-        userDTO.setRole(user.getRole());
+        userDTO.setRole(user.getRole().name());
         return userDTO;
     }
 

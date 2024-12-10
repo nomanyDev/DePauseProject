@@ -2,15 +2,19 @@ package com.NomDev.DePauseProject.dto;
 
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 public class UserDTO {
     private Long id;
-    private String name;
+    private String firstName; // Имя пользователя
+    private String lastName; // Фамилия пользователя
     private String email;
-    private String profilePhotoUrl; // URL фотографии профиля
-    private Integer age;
-    private String gender; // "M", "F", "U"
+    private String profilePhotoUrl;
+    private LocalDate birthDate; // Дата рождения
+    private Integer age; // Расчетный возраст
+    private String gender;
     private String phoneNumber;
     private String telegramNickname;
-    private String role; // USER, PSYCHOLOGIST, ADMIN
+    private String role;
 }

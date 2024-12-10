@@ -1,13 +1,10 @@
 package com.NomDev.DePauseProject.service.interfaces;
-
-import com.NomDev.DePauseProject.dto.PsychologistDTO;
 import com.NomDev.DePauseProject.dto.Response;
-
-import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 public interface IPsychologistService {
-    List<PsychologistDTO> getAllPsychologists();
-    PsychologistDTO getPsychologistById(Long id);
-    void updatePsychologistProfile(Long id, PsychologistDTO psychologistDTO);
-    Response deletePsychologist(Long id);
+    Response getAllPsychologists(Pageable pageable); // Получение всех психологов с пагинацией
+    Response getPsychologistById(Long id); // Получение психолога по ID
+    Response editPsychologistProfile(String email, EditPsychologistRequest request); // Редактирование профиля психолога
+    Response deletePsychologist(Long id); // Удаление психолога (админ)
 }

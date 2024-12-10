@@ -2,11 +2,14 @@ package com.NomDev.DePauseProject.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Past;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -24,12 +27,16 @@ public class User implements UserDetails {
     @Column(unique = true)
     private String email;
 
-    @NotBlank(message = "Name is required")
-    private String name;
+    @NotBlank(message = "First name is required")
+    private String firstName;
+
+    @NotBlank(message = "Last name is required")
+    private String lastName;
 
     private String profilePhotoUrl;
 
-    private Integer age;
+    @Past(message = "Birth date must be in the past")
+    private LocalDate birthDate; // Дата рождения
 
     private String gender; // M, F, U (Male, Female, Unknown)
 
@@ -48,6 +55,14 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Appointment> appointments = new ArrayList<>();
+
+    // Рассчет возраста на основе даты рождения
+    public Integer getAge() {
+        if (birthDate == null) {
+            return null;
+        }
+        return Period.between(this.birthDate, LocalDate.now()).getYears();
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
