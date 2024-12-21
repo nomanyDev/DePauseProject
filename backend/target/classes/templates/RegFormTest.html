@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+import React, { useState } from 'react';
+
+const RegistrationForm = () => {
+const [formData, setFormData] = useState({
+name: '',
+email: '',
+password: '',
+role: 'ROLE_USER', // Default role
+});
+
+const handleChange = (e) => {
+const { name, value } = e.target;
+setFormData((prev) => ({ ...prev, [name]: value }));
+};
+
+const handleSubmit = async (e) => {
+e.preventDefault();
+const response = await fetch('/api/v1/users', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(formData),
+});
+if (response.ok) {
+alert('Registration successful!');
+} else {
+alert('Registration failed.');
+}
+};
+
+return (
+<form onSubmit={handleSubmit}>
+  <input name="name" placeholder="Name" onChange={handleChange} />
+  <input name="email" placeholder="Email" onChange={handleChange} />
+  <input name="password" type="password" placeholder="Password" onChange={handleChange} />
+  <select name="role" onChange={handleChange}>
+    <option value="ROLE_USER">User</option>
+    <option value="ROLE_PSYCHOLOGIST">Psychologist</option>
+  </select>
+  <button type="submit">Register</button>
+</form>
+);
+};
+
+export default RegistrationForm;
+
+
+</body>
+</html>
