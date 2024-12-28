@@ -1,6 +1,7 @@
 package com.NomDev.DePauseProject.controller;
 
 
+import com.NomDev.DePauseProject.dto.AvailabilitySlotRequest;
 import com.NomDev.DePauseProject.dto.Response;
 import com.NomDev.DePauseProject.service.interfaces.IAppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,6 @@ public class AppointmentController {
     @Autowired
     private IAppointmentService appointmentService;
 
-    // Создание записи на прием
     @PostMapping("/book")
     public ResponseEntity<Response> createAppointment(
             @RequestParam Long userId,
@@ -47,7 +47,6 @@ public class AppointmentController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-    // Получение списка записей психолога
     @GetMapping("/client-list")
     @PreAuthorize("hasAuthority('PSYCHOLOGIST')")
     public ResponseEntity<Response> getAppointmentsByPsychologist(
@@ -60,7 +59,6 @@ public class AppointmentController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-    // Отмена записи
     @DeleteMapping("/{appointmentId}/cancel")
     public ResponseEntity<Response> cancelAppointment(@PathVariable Long appointmentId) {
         Response response = appointmentService.cancelAppointment(appointmentId);
@@ -86,4 +84,24 @@ public class AppointmentController {
         Response response = appointmentService.updateAvailability(psychologistId, availableDates);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+
+    @PutMapping("/update-slots")
+    @PreAuthorize("hasAuthority('PSYCHOLOGIST')")
+    public ResponseEntity<Response> updateAvailabilitySlots(
+            @RequestParam Long psychologistId,
+            @RequestBody List<AvailabilitySlotRequest> slots
+    ) {
+        Response response = appointmentService.updateAvailabilitySlots(psychologistId, slots);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @GetMapping("/available-time-slots")
+    public ResponseEntity<Response> getAvailableTimeSlots(
+            @RequestParam Long psychologistId,
+            @RequestParam String date
+    ) {
+        Response response = appointmentService.getAvailableTimeSlots(psychologistId, LocalDate.parse(date));
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
 }

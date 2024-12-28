@@ -18,17 +18,17 @@ function Footer() {
         <Box
           sx={{
             display: "flex",
-            justifyContent: "space-between", // Выравнивание текста и иконок
-            alignItems: "center", // Центрирование по вертикали
+            justifyContent: "space-between", 
+            alignItems: "center", 
           }}
         >
-          {/* Текст слева */}
+          
           <Typography variant="body2" sx={{ textAlign: "left" }}>
             DePause Appointment System | All Right Reserved &copy;{" "}
             {new Date().getFullYear()}
           </Typography>
 
-          {/* Иконки справа */}
+          
           <Box sx={{ display: "flex", gap: 2 }}>
             <Link
               href="https://www.linkedin.com/in/nomany/"

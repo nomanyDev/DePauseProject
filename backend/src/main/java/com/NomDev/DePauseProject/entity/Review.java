@@ -22,8 +22,12 @@ public class Review {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+    // fix for reviews
+    @ManyToOne
+    @JoinColumn(name = "appointment_id", nullable = false) // Связь с Appointment
+    private Appointment appointment;
 
-    @Column(nullable = false, length = 400)
+    @Column(nullable = false, length = 500)
     private String content;
 
     @Column(nullable = false)

@@ -32,7 +32,8 @@ public class Response {
     @Setter
     private Page<?> page;
 
-    private List<LocalDate> availableDates;
+    private List<String> availableDates;
+
 
 }
 

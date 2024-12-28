@@ -44,6 +44,7 @@ public class SecurityConfig {
                         // endpoints for auth users
                         .requestMatchers("/appointments/update-availability").hasAuthority("PSYCHOLOGIST")
                         .requestMatchers("/appointments/**").hasAnyAuthority("USER", "PSYCHOLOGIST", "ADMIN")
+                        .requestMatchers("/reviews/create").hasAnyAuthority("USER", "PSYCHOLOGIST", "ADMIN")
                         .requestMatchers("/users/**").authenticated()
 
                         // endpoints for psychologist

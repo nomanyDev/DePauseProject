@@ -56,7 +56,7 @@ public class Utils {
         dto.setEducation(details.getEducation());
         dto.setExperience(details.getExperience());
 
-        // Преобразование TherapyType в строку
+
         List<String> therapyTypeStrings = details.getTherapyTypes().stream()
                 .map(TherapyType::toString)
                 .collect(Collectors.toList());
@@ -66,6 +66,14 @@ public class Utils {
         dto.setPrice(details.getPrice());
         dto.setDescription(details.getUser().getFirstName() + " " + details.getUser().getLastName());
         dto.setCertificateUrls(details.getCertificateUrls());
+
+
+        if (details.getUser() != null) {
+            dto.setProfilePhotoUrl(details.getUser().getProfilePhotoUrl());
+        } else {
+            dto.setProfilePhotoUrl(null);
+        }
+
         return dto;
     }
 
@@ -95,7 +103,9 @@ public class Utils {
      * Map a list of PsychologistDetails entities to a list of PsychologistDTOs.
      */
     public static List<PsychologistDTO> mapPsychologistListToDTOList(List<PsychologistDetails> detailsList) {
-        return detailsList.stream().map(Utils::mapPsychologistToDTO).collect(Collectors.toList());
+        return detailsList.stream()
+                .map(Utils::mapPsychologistToDTO)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -110,8 +120,11 @@ public class Utils {
         dto.setId(review.getId());
         dto.setContent(review.getContent());
         dto.setRating(review.getRating());
-        dto.setUserId(review.getUser().getId()); // Устанавливаем ID пользователя
-        dto.setPsychologistId(review.getPsychologist().getId()); // Устанавливаем ID психолога
+        dto.setUserId(review.getUser().getId());
+        dto.setPsychologistId(review.getPsychologist().getId());
+        dto.setAppointmentId(review.getAppointment().getId());
+        dto.setFirstName(review.getUser().getFirstName());
+        dto.setLastName(review.getUser().getLastName());
         return dto;
     }
 }

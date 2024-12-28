@@ -23,7 +23,7 @@ const EditProfilePage = () => {
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [profilePhoto, setProfilePhoto] = useState(null); // Для загрузки файла
+  const [profilePhoto, setProfilePhoto] = useState(null); // for photos
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -59,7 +59,7 @@ const EditProfilePage = () => {
   };
 
   const handleFileChange = (e) => {
-    setProfilePhoto(e.target.files[0]); // Сохраняем файл в состоянии
+    setProfilePhoto(e.target.files[0]); 
   };
 
   const handleSubmit = async () => {
@@ -78,11 +78,11 @@ const EditProfilePage = () => {
       setSuccess("");
     }
 
-    // Если фото выбрано, загружаем его
+    
     if (profilePhoto) {
       try {
         const photoResponse = await ApiService.uploadProfilePhoto(profile.id, profilePhoto);
-        setProfile({ ...profile, profilePhotoUrl: photoResponse.photoUrl }); // Обновляем URL фото в профиле
+        setProfile({ ...profile, profilePhotoUrl: photoResponse.photoUrl }); 
         setSuccess("Profile photo uploaded successfully!");
         setError("");
       } catch (err) {

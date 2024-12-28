@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 public class ReviewDTO {
     private Long id;
-    @Size(max = 400, message = "Review content max 400 characters")
+    @Size(max = 500, message = "Review content max 500 characters")
     private String content;
     @NotNull(message = "Rating is required")
     @Min(value = 1, message = "Rating must be at least 1")
@@ -18,4 +18,6 @@ public class ReviewDTO {
     private Long appointmentId;
     private Long userId;
     private Long psychologistId;
+    private String firstName;
+    private String lastName;
 }

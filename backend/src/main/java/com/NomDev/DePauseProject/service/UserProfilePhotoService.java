@@ -18,14 +18,14 @@ public class UserProfilePhotoService {
 
     public String uploadProfilePhoto(Long userId, MultipartFile photo) {
         try {
-            // Проверяем пользователя
+
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new OurException("User not found"));
 
-            // Загружаем фото в S3
+
             String photoUrl = awsS3Service.saveImageToS3(photo);
 
-            // Обновляем профиль пользователя
+
             user.setProfilePhotoUrl(photoUrl);
             userRepository.save(user);
 

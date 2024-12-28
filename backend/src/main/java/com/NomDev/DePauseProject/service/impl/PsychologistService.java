@@ -104,7 +104,9 @@ public class PsychologistService implements IPsychologistService {
                     .mapToInt(Review::getRating)
                     .average()
                     .orElse(0.0);
-            details.setRating(averageRating);
+            if (!averageRating.isNaN()) {
+                details.setRating(averageRating);
+            }
 
 
             psychologistDetailsRepository.save(details);

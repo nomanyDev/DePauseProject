@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Card, CardContent, CardMedia, Grid, Button, Dialog } from "@mui/material";
-import { useLocation } from "react-router-dom";
+import { Box, Typography, Card, CardContent, Avatar, Grid, Button, Dialog } from "@mui/material";
+import { useLocation, useNavigate } from "react-router-dom";
 import ApiService from "../../service/ApiService";
 import BookAppointmentPage from "../appointments/BookAppointmentPage";
 
 function PsychologistsPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [psychologists, setPsychologists] = useState(location.state?.searchResults || []);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [selectedPsychologistId, setSelectedPsychologistId] = useState(null); // Для модального окна
+  const [selectedPsychologistId, setSelectedPsychologistId] = useState(null);
   const [openBooking, setOpenBooking] = useState(false);
 
   useEffect(() => {
@@ -20,7 +21,7 @@ function PsychologistsPage() {
 
   const fetchPsychologists = async (page) => {
     try {
-      const response = await ApiService.getPsychologistsList(page, 9); // 9 карточек на странице
+      const response = await ApiService.getPsychologistsList(page, 9);
       setPsychologists(response.page?.content || []);
       setTotalPages(response.page?.totalPages || 0);
     } catch (error) {
@@ -42,6 +43,37 @@ function PsychologistsPage() {
     setSelectedPsychologistId(null);
   };
 
+  const getAvatar = (psychologist) => {
+    if (psychologist.profilePhotoUrl) {
+      return (
+        <Avatar
+          src={psychologist.profilePhotoUrl}
+          sx={{
+            width: "100%",
+            height: 250,
+            borderRadius: 2, 
+          }}
+          variant="square"
+        />
+      );
+    }
+    const initials =
+      psychologist.description?.split(" ").map((name) => name[0]).join("").toUpperCase() || "P";
+    return (
+      <Avatar
+        sx={{
+          bgcolor: "primary.main",
+          width: "100%",
+          height: 250,
+          borderRadius: 2,
+        }}
+        variant="square"
+      >
+        {initials}
+      </Avatar>
+    );
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom textAlign="center" color="primary">
@@ -54,20 +86,16 @@ function PsychologistsPage() {
               sx={{
                 boxShadow: 3,
                 borderRadius: 2,
-                height: "100%",
                 display: "flex",
                 flexDirection: "column",
+                height: "100%",
+                p: 2,
               }}
             >
               {/* Фото психолога */}
-              <CardMedia
-                component="img"
-                height="200"
-                image={psychologist.photoUrl || "/default-avatar.png"}
-                alt={psychologist.description || "Psychologist"}
-              />
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography variant="h6" component="div" textAlign="center" gutterBottom>
+              {getAvatar(psychologist)}
+              <CardContent sx={{ flexGrow: 1, textAlign: "center" }}>
+                <Typography variant="h6" component="div" gutterBottom>
                   {psychologist.description || "No Name Provided"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -83,21 +111,50 @@ function PsychologistsPage() {
                 <Typography variant="body2" color="text.secondary">
                   <strong>Price:</strong> ${psychologist.price || "N/A"}
                 </Typography>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  sx={{ mt: 2 }}
-                  onClick={() => handleOpenBooking(psychologist.id)}
+                <Box
+                  sx={{
+                    mt: 3,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
                 >
-                  Book Appointment
-                </Button>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    onClick={() => handleOpenBooking(psychologist.id)}
+                    sx={{ fontWeight: "bold", mb: 1 }}
+                  >
+                    Book Appointment
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    fullWidth
+                    onClick={() => navigate(`/psychologists/${psychologist.id}`)}
+                  >
+                    View Profile
+                  </Button>
+                  {/* hidden 
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    fullWidth
+                    onClick={() => navigate(`/psychologists/${psychologist.id}/reviews`)}
+                  >
+                    View Reviews
+                  </Button>
+                  */}
+                </Box>
               </CardContent>
             </Card>
           </Grid>
         ))}
       </Grid>
 
-      {/* Модальное окно с компонентом BookAppointmentPage */}
+      {/* Диалоговое окно записи на прием */}
       <Dialog open={openBooking} onClose={handleCloseBooking} fullWidth maxWidth="sm">
         <BookAppointmentPage psychologistId={selectedPsychologistId} onClose={handleCloseBooking} />
       </Dialog>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -23,7 +23,6 @@ import {
   DialogActions,
 } from "@mui/material";
 
-
 const pages = [
   { name: "Home", path: "/" },
   { name: "Psychologists", path: "/psychologists" },
@@ -31,17 +30,32 @@ const pages = [
   { name: "Profile", path: "/profile" },
   { name: "Support", path: "/support" },
 ];
-const settings = ["Edit Profile", "Change Password", "Logout"];
+const settings = ["Profile", "Edit Profile", "Change Password", "Logout"];
 
 function Navbar() {
   const [anchorElUser, setAnchorElUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
-  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false); 
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(ApiService.isAuthenticated());
+  const [userProfile, setUserProfile] = useState(null); 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const fetchUserProfile = async () => {
+        try {
+          const profile = await ApiService.getUserProfile(); 
+          setUserProfile(profile.user); 
+        } catch (err) {
+          console.error("Error fetching user profile:", err.message);
+        }
+      };
+      fetchUserProfile();
+    }
+  }, [isAuthenticated]);
 
   const handleOpenUserMenu = (event) => setAnchorElUser(event.currentTarget);
   const handleCloseUserMenu = () => setAnchorElUser(null);
@@ -67,7 +81,7 @@ function Navbar() {
 
   const handleOpenChangePasswordDialog = () => {
     setPasswordDialogOpen(true);
-    setAnchorElUser(null); // Закрыть меню
+    setAnchorElUser(null);
   };
 
   const handleOpenLoginDialog = () => setLoginDialogOpen(true);
@@ -151,7 +165,11 @@ function Navbar() {
               <>
                 <Tooltip title="Open settings">
                   <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                    <Avatar alt="User" src="/static/images/avatar/1.jpg" />
+                    {/* user photo */}
+                    <Avatar
+                      alt={userProfile?.firstName || "User"}
+                      src={userProfile?.profilePhotoUrl || "/static/images/avatar/default-avatar.png"}
+                    />
                   </IconButton>
                 </Tooltip>
                 <Menu
@@ -160,6 +178,9 @@ function Navbar() {
                   open={Boolean(anchorElUser)}
                   onClose={handleCloseUserMenu}
                 >
+                  <MenuItem onClick={() => handlePageNavigation("/profile")}>
+                    Profile
+                  </MenuItem>
                   <MenuItem onClick={() => handlePageNavigation("/profile/editprofile")}>
                     Edit Profile
                   </MenuItem>

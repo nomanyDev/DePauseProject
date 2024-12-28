@@ -50,6 +50,7 @@ public class ReviewService implements IReviewService {
     @Override
     public ReviewDTO createReview(ReviewDTO reviewDTO) {
 
+        // if already exist
         boolean reviewExists = reviewRepository.existsByUserIdAndPsychologistId(
                 reviewDTO.getUserId(),
                 reviewDTO.getPsychologistId()
@@ -58,9 +59,29 @@ public class ReviewService implements IReviewService {
             throw new OurException("You have already submitted a review for this psychologist");
         }
 
+        // check appointment by id
+        Appointment appointment = appointmentRepository.findById(reviewDTO.getAppointmentId())
+                .orElseThrow(() -> new OurException("Appointment not found"));
+
+        // if user = user
+        if (!appointment.getUser().getId().equals(reviewDTO.getUserId())) {
+            throw new OurException("User does not match the appointment");
+        }
+
+        // if Psychologist = Psychologist
+        if (!appointment.getPsychologist().getId().equals(reviewDTO.getPsychologistId())) {
+            throw new OurException("Psychologist does not match the appointment");
+        }
+        /* if appointment not completed  (will add this validation later)
+        if (!"Completed".equalsIgnoreCase(appointment.getStatus())) {
+            throw new OurException("You can only review completed appointments");
+        }
+         */
+
         Review review = new Review();
         review.setContent(reviewDTO.getContent());
         review.setRating(reviewDTO.getRating());
+        review.setAppointment(appointment); // Устанавливаем связь с Appointment
 
         PsychologistDetails psychologist = psychologistDetailsRepository.findById(reviewDTO.getPsychologistId())
                 .orElseThrow(() -> new OurException("Psychologist not found"));
@@ -72,13 +93,14 @@ public class ReviewService implements IReviewService {
 
         reviewRepository.save(review);
 
-
+        // avg rating for psychologist
         Double averageRating = calculateAverageRating(psychologist.getId());
         psychologist.setRating(averageRating);
         psychologistDetailsRepository.save(psychologist);
 
         return Utils.mapReviewToDTO(review);
     }
+
     @PreAuthorize("hasAuthority('ADMIN')")
     public void deleteReviewByAdmin(Long reviewId) {
         if (!reviewRepository.existsById(reviewId)) {

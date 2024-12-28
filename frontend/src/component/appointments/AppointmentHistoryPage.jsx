@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Container, Box, Typography, Card, CardContent, Pagination } from "@mui/material";
+import { Container, Box, Typography, Card, CardContent, Pagination, Button } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import ApiService from "../../service/ApiService";
 
 const AppointmentHistoryPage = () => {
@@ -7,27 +8,56 @@ const AppointmentHistoryPage = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [error, setError] = useState("");
+  const [role, setRole] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const role = localStorage.getItem("role");
-    const userId = localStorage.getItem("userId");
-    const psychologistId = localStorage.getItem("psychologistId");
+    const fetchProfileAndAppointments = async () => {
+      try {
+        const profile = await ApiService.fetchUserProfile();
+        console.log("Fetched profile:", profile);
 
-    console.log("Role:", role, "User ID:", userId, "Psychologist ID:", psychologistId);
+        const role = profile.user?.role; 
+        if (!role) {
+          setError("Invalid role. Please log in.");
+          return;
+        }
 
-    if (role === "USER" && userId) {
-      fetchAppointmentsForUser(userId, currentPage);
-    } else if (role === "PSYCHOLOGIST" && psychologistId) {
-      fetchAppointmentsForPsychologist(psychologistId, currentPage);
-    } else {
-      setError("Invalid role or missing ID. Please log in.");
-    }
+        setRole(role);
+
+        if (role === "USER") {
+          const userId = profile.user?.id;
+          if (!userId) {
+            throw new Error("User ID is missing in profile data");
+          }
+          fetchAppointmentsForUser(userId, currentPage);
+        } else if (role === "PSYCHOLOGIST") {
+          const psychologistId = profile.psychologist?.id; 
+          if (!psychologistId) {
+            throw new Error("Psychologist ID is missing in profile data");
+          }
+          fetchAppointmentsForPsychologist(psychologistId, currentPage);
+        } else {
+          setError("Invalid role. Please log in.");
+        }
+      } catch (err) {
+        console.error("Error fetching profile:", err.message);
+        setError("Failed to fetch profile. Please log in again.");
+      }
+    };
+
+    fetchProfileAndAppointments();
   }, [currentPage]);
 
   const fetchAppointmentsForUser = async (userId, page) => {
     try {
+      console.log("Fetching appointments for user:", userId, "Page:", page);
       const response = await ApiService.getUserAppointments(userId, page, 10);
-      setAppointments(response.page?.content || []);
+
+      // Переворачиваем массив, чтобы последние элементы были первыми
+      const reversedAppointments = [...(response.page?.content || [])].reverse();
+
+      setAppointments(reversedAppointments);
       setTotalPages(response.page?.totalPages || 0);
     } catch (err) {
       console.error("Error fetching appointments for user:", err.message);
@@ -37,8 +67,13 @@ const AppointmentHistoryPage = () => {
 
   const fetchAppointmentsForPsychologist = async (psychologistId, page) => {
     try {
+      console.log("Fetching appointments for psychologist:", psychologistId, "Page:", page);
       const response = await ApiService.getPsychologistAppointments(psychologistId, page, 10);
-      setAppointments(response.page?.content || []);
+
+      // reverse data from appointemnt to show from last added
+      const reversedAppointments = [...(response.page?.content || [])].reverse();
+
+      setAppointments(reversedAppointments);
       setTotalPages(response.page?.totalPages || 0);
     } catch (err) {
       console.error("Error fetching appointments for psychologist:", err.message);
@@ -65,26 +100,42 @@ const AppointmentHistoryPage = () => {
           {appointments.map((appointment) => (
             <Card key={appointment.id} sx={{ mb: 2 }}>
               <CardContent>
-                <Typography variant="h6">
-                  Appointment ID: {appointment.id}
-                </Typography>
+                <Typography variant="h6">Appointment ID: {appointment.id}</Typography>
                 <Typography>
-                  Date and Time:{" "}
-                  {new Date(appointment.appointmentTime).toLocaleString()}
+                  Date and Time: {new Date(appointment.appointmentTime).toLocaleString()}
                 </Typography>
                 <Typography>Status: {appointment.status}</Typography>
                 <Typography>
-                  Psychologist:{" "}
-                  {appointment.psychologist
-                    ? appointment.psychologist.description
-                    : "N/A"}
+                  Psychologist: {appointment.psychologist?.description || "N/A"}
                 </Typography>
                 <Typography>
-                  Client:{" "}
-                  {appointment.user
-                    ? `${appointment.user.firstName} ${appointment.user.lastName}`
-                    : "N/A"}
+                  Client: {appointment.user?.firstName} {appointment.user?.lastName || "N/A"}
                 </Typography>
+                {role === "USER" && (
+                  <Box sx={{ mt: 2 }}>
+                    {appointment.hasReview ? (
+                      <Button
+                        variant="outlined"
+                        color="secondary"
+                        onClick={() =>
+                          navigate(`/psychologists/${appointment.psychologist.id}/reviews`)
+                        }
+                      >
+                        View Review
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() =>
+                          navigate("/reviews/create", { state: { appointment } })
+                        }
+                      >
+                        Create Review
+                      </Button>
+                    )}
+                  </Box>
+                )}
               </CardContent>
             </Card>
           ))}

@@ -1,14 +1,18 @@
+
+
 import React, { useState, useEffect } from "react";
 import { TextField, MenuItem, Button, Box } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
+import { useNavigate } from "react-router-dom";
 import ApiService from "../../service/ApiService";
 
-const PsychologistSearch = ({ onSearch }) => {
+const PsychologistSearch = () => {
   const [therapyType, setTherapyType] = useState("");
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [therapyTypes, setTherapyTypes] = useState([]);
   const [error, setError] = useState("");
+  const navigate = useNavigate(); // Используем useNavigate для перенаправления
 
   useEffect(() => {
     setTherapyTypes([
@@ -32,7 +36,9 @@ const PsychologistSearch = ({ onSearch }) => {
         startDate: startDate.toISOString().split("T")[0],
         endDate: endDate.toISOString().split("T")[0],
       });
-      onSearch(results.psychologistList);
+      
+      // Перенаправляем на страницу с результатами
+      navigate("/psychologists", { state: { searchResults: results.psychologistList } });
     } catch (err) {
       setError(err.response?.data?.message || "Error during search");
     }
@@ -87,3 +93,4 @@ const PsychologistSearch = ({ onSearch }) => {
 };
 
 export default PsychologistSearch;
+

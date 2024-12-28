@@ -1,5 +1,6 @@
 package com.NomDev.DePauseProject.service.interfaces;
 
+import com.NomDev.DePauseProject.dto.AvailabilitySlotRequest;
 import com.NomDev.DePauseProject.dto.Response;
 import org.springframework.data.domain.Pageable;
 
@@ -14,7 +15,7 @@ public interface IAppointmentService {
     Response cancelAppointment(Long appointmentId);
     Response getAvailableDates(Long psychologistId, LocalDate fromDate, LocalDate toDate);
     Response updateAvailability(Long psychologistId, List<String> availableDates);
-    boolean isAvailableDate(Long psychologistId, LocalDateTime appointmentTime); // Проверка доступности времени
-
-
+    Response getAvailableTimeSlots(Long psychologistId, LocalDate date);
+    Response updateAvailabilitySlots(Long psychologistId, List<AvailabilitySlotRequest> slots);
+    Response isAvailableDate(Long psychologistId, LocalDateTime appointmentTime);
 }

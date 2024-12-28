@@ -1,11 +1,9 @@
 package com.NomDev.DePauseProject.service.impl;
 
 import com.NomDev.DePauseProject.dto.AppointmentDTO;
+import com.NomDev.DePauseProject.dto.AvailabilitySlotRequest;
 import com.NomDev.DePauseProject.dto.Response;
-import com.NomDev.DePauseProject.entity.Appointment;
-import com.NomDev.DePauseProject.entity.Availability;
-import com.NomDev.DePauseProject.entity.PsychologistDetails;
-import com.NomDev.DePauseProject.entity.User;
+import com.NomDev.DePauseProject.entity.*;
 import com.NomDev.DePauseProject.exception.OurException;
 import com.NomDev.DePauseProject.repository.AppointmentRepository;
 import com.NomDev.DePauseProject.repository.AvailabilityRepository;
@@ -22,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -42,7 +41,7 @@ public class AppointmentService implements IAppointmentService {
     @Autowired
     private AvailabilityRepository availabilityRepository;
 
-    // Метод для проверки доступности даты
+
     private boolean isAvailableDate(LocalDateTime requestedTime, List<Appointment> existingAppointments) {
         return existingAppointments.stream()
                 .noneMatch(existingAppointment ->
@@ -52,9 +51,24 @@ public class AppointmentService implements IAppointmentService {
     }
 
     @Override
-    public boolean isAvailableDate(Long psychologistId, LocalDateTime appointmentTime) {
-        List<Appointment> existingAppointments = appointmentRepository.findByPsychologistId(psychologistId);
-        return isAvailableDate(appointmentTime, existingAppointments);
+    public Response isAvailableDate(Long psychologistId, LocalDateTime appointmentTime) {
+        Response response = new Response();
+        try {
+            List<Appointment> existingAppointments = appointmentRepository.findByPsychologistId(psychologistId);
+            boolean isAvailable = existingAppointments.stream()
+                    .noneMatch(existingAppointment ->
+                            !appointmentTime.isBefore(existingAppointment.getAppointmentTime()) &&
+                                    !appointmentTime.isAfter(existingAppointment.getAppointmentTime().plusHours(1))
+                    );
+
+            response.setStatusCode(200);
+            response.setMessage("Availability check successful");
+            response.setAvailableDates(List.of(isAvailable ? "Available" : "Not Available"));
+        } catch (Exception e) {
+            response.setStatusCode(500);
+            response.setMessage("Error checking availability: " + e.getMessage());
+        }
+        return response;
     }
 
     @Override
@@ -188,9 +202,12 @@ public class AppointmentService implements IAppointmentService {
         try {
             List<Availability> availableDates = availabilityRepository
                     .findByPsychologistIdAndAvailableDateBetween(psychologistId, fromDate, toDate);
+            List<String> dates = availableDates.stream()
+                    .map(date -> date.getAvailableDate().toString())
+                    .toList();
             response.setStatusCode(200);
             response.setMessage("Available dates fetched successfully");
-            response.setAvailableDates(availableDates.stream().map(Availability::getAvailableDate).toList());
+            response.setAvailableDates(dates);
         } catch (Exception e) {
             response.setStatusCode(500);
             response.setMessage("Error fetching available dates: " + e.getMessage());
@@ -222,5 +239,59 @@ public class AppointmentService implements IAppointmentService {
         }
         return response;
     }
+    @Override
+    public Response getAvailableTimeSlots(Long psychologistId, LocalDate date) {
+        Response response = new Response();
+        try {
+            List<Availability> availableSlots = availabilityRepository
+                    .findByPsychologistIdAndAvailableDateAndStatus(psychologistId, date, SlotStatus.AVAILABLE);
+
+            List<String> timeSlots = availableSlots.stream()
+                    .map(slot -> slot.getStartTime() + " - " + slot.getEndTime())
+                    .toList();
+
+            response.setStatusCode(200);
+            response.setMessage("Available time slots fetched successfully");
+            response.setAvailableDates(timeSlots); // Сохраняем в поле типа List<String>
+        } catch (Exception e) {
+            response.setStatusCode(500);
+            response.setMessage("Error fetching available time slots: " + e.getMessage());
+        }
+        return response;
+    }
+
+    @Override
+    public Response updateAvailabilitySlots(Long psychologistId, List<AvailabilitySlotRequest> slots) {
+        Response response = new Response();
+        try {
+            PsychologistDetails psychologist = psychologistDetailsRepository.findById(psychologistId)
+                    .orElseThrow(() -> new OurException("Psychologist not found"));
+
+            List<Availability> availabilitySlots = slots.stream()
+                    .map(slotRequest -> {
+                        Availability slot = new Availability();
+                        slot.setPsychologist(psychologist);
+                        slot.setAvailableDate(LocalDate.parse(slotRequest.getDate()));
+                        slot.setStartTime(LocalTime.parse(slotRequest.getStartTime()));
+                        slot.setEndTime(LocalTime.parse(slotRequest.getEndTime()));
+                        slot.setStatus(SlotStatus.valueOf(slotRequest.getStatus().toUpperCase()));
+                        return slot;
+                    })
+                    .toList();
+
+            availabilityRepository.saveAll(availabilitySlots);
+
+            response.setStatusCode(200);
+            response.setMessage("Availability slots updated successfully");
+        } catch (OurException e) {
+            response.setStatusCode(404);
+            response.setMessage(e.getMessage());
+        } catch (Exception e) {
+            response.setStatusCode(500);
+            response.setMessage("Error updating availability slots: " + e.getMessage());
+        }
+        return response;
+    }
+
 }
 

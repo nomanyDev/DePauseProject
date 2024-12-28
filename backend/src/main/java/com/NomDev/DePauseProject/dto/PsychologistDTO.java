@@ -15,5 +15,6 @@ public class PsychologistDTO {
     private BigDecimal price;
     private String description;
     private List<String> certificateUrls;
+    private String profilePhotoUrl;
 }
 

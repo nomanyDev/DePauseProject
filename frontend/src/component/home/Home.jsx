@@ -100,6 +100,15 @@ const Home = () => {
                   >
                     View Profile
                   </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    sx={{ mt: 1 }}
+                    onClick={() => navigate(`/psychologists/${psychologist.id}/reviews`)}
+                    >
+                      View Reviews
+                      </Button>
+
                 </CardContent>
               </Card>
             ))

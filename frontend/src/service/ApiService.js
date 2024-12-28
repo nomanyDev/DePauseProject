@@ -137,16 +137,12 @@ export default class ApiService {
     }
 
     /** APPOINTMENT CONTROLLER */
-    static async bookAppointment({ userId, psychologistId, appointmentTime }) {
+    static async bookAppointment({ userId, psychologistId, therapyType, appointmentTime }) {
         const response = await axios.post(
           `${this.BASE_URL}/appointments/book`,
-          null,
+          null, 
           {
-            params: {
-              userId,
-              psychologistId,
-              appointmentTime,
-            },
+            params: { userId, psychologistId, therapyType, appointmentTime }, 
             headers: this.getHeader(),
           }
         );
@@ -194,8 +190,21 @@ export default class ApiService {
           headers: this.getHeader(),
         });
         console.log("Fetched profile response:", response.data);
-        return response.data; // Не добавляйте `.user` здесь, чтобы вернуть весь объект
+        return response.data; 
       }
+      static async getAvailableTimeSlots(psychologistId, date) {
+        try {
+            const response = await axios.get(`${this.BASE_URL}/appointments/available-time-slots`, {
+                headers: this.getHeader(),
+                params: { psychologistId, date },
+            });
+            return response.data;
+        } catch (err) {
+            console.error("Error in getAvailableTimeSlots:", err.message);
+            throw err;
+        }
+    }
+    
 
     /** REVIEW CONTROLLER */
     static async createReview(reviewData) {

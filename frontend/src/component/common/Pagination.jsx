@@ -10,7 +10,7 @@ const PsychologistPagination = ({ totalPages, currentPage, onPageChange }) => {
     <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
       <Pagination
         count={totalPages}
-        page={currentPage + 1} // Convert to 1-based index
+        page={currentPage + 1} 
         onChange={handlePageChange}
         color="primary"
       />

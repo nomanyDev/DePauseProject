@@ -32,7 +32,7 @@ const ChangePasswordDialog = ({ open, onClose }) => {
       await ApiService.changePassword({ currentPassword, newPassword, confirmationPassword });
       setSuccessMessage("Password changed successfully!");
       setErrorMessage("");
-      setTimeout(onClose, 2000); // Закрываем окно через 2 сек
+      setTimeout(onClose, 2000); 
     } catch (error) {
       setErrorMessage(error.response?.data?.message || "Failed to change password.");
       setSuccessMessage("");

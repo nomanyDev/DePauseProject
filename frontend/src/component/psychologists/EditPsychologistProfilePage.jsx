@@ -84,15 +84,15 @@ const EditPsychologistPage = ({ psychologistId }) => {
 
   const handleSubmit = async () => {
     try {
-        // Преобразуем therapyTypes в значения ENUM
+        
         const updatedData = {
             ...psychologistData,
             therapyTypes: psychologistData.therapyTypes.map(
-                (type) => therapyTypeMapping[type] // Конвертируем строки в формат ENUM
+                (type) => therapyTypeMapping[type] 
             ),
         };
 
-        console.log("Data sent to API:", updatedData); // Лог для проверки
+        console.log("Data sent to API:", updatedData); 
         await ApiService.editPsychologistProfile(updatedData);
         setSuccess("Psychologist profile updated successfully!");
         setError("");
