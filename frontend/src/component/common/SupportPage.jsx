@@ -33,7 +33,7 @@ const SupportPage = () => {
     }
 
     try {
-        console.log("Sending support request:", formData); // Добавьте логирование
+        console.log("Sending support request:", formData); //test
         await ApiService.sendSupportRequest(formData);
         setSuccessMessage("Your support request has been sent successfully.");
         setErrorMessage("");

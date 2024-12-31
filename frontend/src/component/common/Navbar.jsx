@@ -123,7 +123,7 @@ function Navbar() {
             sx={{ mr: 2, cursor: "pointer" }}
             onClick={() => navigate("/")}
           >
-            Depause
+            DePause
           </Typography>
 
           {/* Search Bar */}

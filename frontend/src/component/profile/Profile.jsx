@@ -103,7 +103,7 @@ const Profile = () => {
     <Container>
       {profile ? (
         <Card sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, p: 3, boxShadow: 3, mt: 4 }}>
-          {/* Фото пользователя */}
+          {/* profile photo */}
           <Box
             sx={{
               flexShrink: 0,
@@ -127,7 +127,7 @@ const Profile = () => {
             />
           </Box>
 
-          {/* Информация о пользователе */}
+          {/* user info */}
           <Box sx={{ flexGrow: 1, ml: { md: 3 }, position: "relative" }}>
             {psychologist && (
               <>
@@ -302,7 +302,7 @@ const Profile = () => {
         </Typography>
       )}
 
-      {/* Блок отзывов для психологов */}
+      {/* reviews */}
       {psychologist && (
         <Box sx={{ mt: 5 }}>
           <Typography variant="h5" gutterBottom>

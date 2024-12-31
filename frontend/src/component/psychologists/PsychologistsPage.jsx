@@ -92,7 +92,7 @@ function PsychologistsPage() {
                 p: 2,
               }}
             >
-              {/* Фото психолога */}
+              {/* photo */}
               {getAvatar(psychologist)}
               <CardContent sx={{ flexGrow: 1, textAlign: "center" }}>
                 <Typography variant="h6" component="div" gutterBottom>
@@ -150,7 +150,7 @@ function PsychologistsPage() {
         ))}
       </Grid>
 
-      {/* Диалоговое окно записи на прием */}
+      {/* booking */}
       <Dialog open={openBooking} onClose={handleCloseBooking} fullWidth maxWidth="sm">
         <BookAppointmentPage psychologistId={selectedPsychologistId} onClose={handleCloseBooking} />
       </Dialog>

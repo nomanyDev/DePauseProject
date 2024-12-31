@@ -10,7 +10,7 @@ const PsychologistList = ({ psychologists }) => {
       {psychologists.map((psychologist) => (
         <Grid item xs={12} sm={6} md={4} key={psychologist.id}>
           <Card sx={{ boxShadow: 3, borderRadius: 2, overflow: "hidden" }}>
-            {/* Фото психолога */}
+            {/* photo */}
             <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
               <Avatar
                 src={psychologist.profilePhotoUrl || "/default-avatar.png"}
@@ -19,7 +19,7 @@ const PsychologistList = ({ psychologists }) => {
               />
             </Box>
             <CardContent sx={{ textAlign: "center" }}>
-              {/* Имя психолога */}
+              {/* name */}
               <Typography variant="h6">
                 {psychologist.firstName && psychologist.lastName
                   ? `${psychologist.firstName} ${psychologist.lastName}`

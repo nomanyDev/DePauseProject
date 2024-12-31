@@ -65,7 +65,7 @@ const BookAppointmentPage = ({ psychologistId, onClose }) => {
 
       const baseSlots = generateDefaultSlots();
 
-      // Убираем слоты с статусами BLOCKED и BOOKED
+      // BLOCKED and BOOKED
       const unavailableSlots = (response.data || [])
         .filter((slot) => slot.status === "BLOCKED" || slot.status === "BOOKED")
         .map((slot) => `${slot.startTime} - ${slot.endTime}`);

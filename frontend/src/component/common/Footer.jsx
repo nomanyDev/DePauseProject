@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Container, Typography, Link, IconButton } from "@mui/material";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import SchoolIcon from "@mui/icons-material/School";
-import GitHubIcon from "@mui/icons-material/GitHub"; // Импорт иконки GitHub
+import GitHubIcon from "@mui/icons-material/GitHub"; 
 
 function Footer() {
   return (

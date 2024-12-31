@@ -23,7 +23,7 @@ const EditProfilePage = () => {
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [profilePhoto, setProfilePhoto] = useState(null); // for photos
+  const [profilePhoto, setProfilePhoto] = useState(null); 
 
   useEffect(() => {
     const fetchProfile = async () => {

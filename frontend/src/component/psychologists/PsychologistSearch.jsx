@@ -12,7 +12,7 @@ const PsychologistSearch = () => {
   const [endDate, setEndDate] = useState(null);
   const [therapyTypes, setTherapyTypes] = useState([]);
   const [error, setError] = useState("");
-  const navigate = useNavigate(); // Используем useNavigate для перенаправления
+  const navigate = useNavigate(); 
 
   useEffect(() => {
     setTherapyTypes([
@@ -20,7 +20,7 @@ const PsychologistSearch = () => {
       "Family Therapy",
       "Couple Therapy",
       "Child Therapy",
-    ]); // Replace with API call if necessary
+    ]); 
   }, []);
 
   const handleSearch = async () => {
@@ -37,7 +37,7 @@ const PsychologistSearch = () => {
         endDate: endDate.toISOString().split("T")[0],
       });
       
-      // Перенаправляем на страницу с результатами
+      
       navigate("/psychologists", { state: { searchResults: results.psychologistList } });
     } catch (err) {
       setError(err.response?.data?.message || "Error during search");

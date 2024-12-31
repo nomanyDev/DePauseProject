@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Container, Typography, Box, Button, Card, CardContent, Avatar } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ApiService from "../../service/ApiService";
-import Slider from "react-slick"; // react-slick
+import Slider from "react-slick"; 
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
 
@@ -28,7 +28,7 @@ const Home = () => {
   useEffect(() => {
     const fetchPsychologists = async () => {
       try {
-        const response = await ApiService.getPsychologistsList(0, 6); // Fetch up to 6 psychologists
+        const response = await ApiService.getPsychologistsList(0, 6); // up to 6 psychologists
         const psychologists = response.page?.content || [];
         // Reverse the order to show the newest psychologists first
         setPsychologists(psychologists.reverse());
@@ -46,7 +46,7 @@ const Home = () => {
     slidesToShow: 1,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 15000, // 15 seconds
+    autoplaySpeed: 15000, // 15 seconds for pictures
     arrows: false,
   };
 

@@ -6,7 +6,7 @@ import ApiService from "../../service/ApiService";
 const CreateReviewPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { appointment } = location.state || {}; // Переданный объект записи
+  const { appointment } = location.state || {}; 
 
   const [content, setContent] = useState("");
   const [rating, setRating] = useState("");
@@ -41,7 +41,7 @@ const CreateReviewPage = () => {
       setSuccess(true);
       setTimeout(() => {
         navigate("/appointments");
-      }, 2000); // Redirect after success
+      }, 2000); // Redirect
     } catch (err) {
       console.error("Error creating review:", err.message);
       setError("Failed to create review. Please try again.");
