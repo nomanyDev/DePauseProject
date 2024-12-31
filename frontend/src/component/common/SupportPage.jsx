@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Box, TextField, Button, MenuItem, Typography, Alert } from "@mui/material";
+import ApiService from "../../service/ApiService";
 
 const SupportPage = () => {
   const [formData, setFormData] = useState({
@@ -12,8 +13,8 @@ const SupportPage = () => {
 
   const problemTypes = [
     "Technical Issue",
-    "Billing Problem",
-    "General Inquiry",
+    "Appointment Problem",
+    "Register/Login Problem",
     "Other",
   ];
 
@@ -22,19 +23,26 @@ const SupportPage = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.email || !formData.problemType || !formData.description) {
-      setErrorMessage("Please fill in all fields.");
-      setTimeout(() => setErrorMessage(""), 5000);
-      return;
+        setErrorMessage("Please fill in all fields.");
+        setTimeout(() => setErrorMessage(""), 5000);
+        return;
     }
 
-    setSuccessMessage("Your feedback has been saved locally (not yet sent).");
-    setErrorMessage("");
-    setFormData({ email: "", problemType: "", description: "" });
-  };
+    try {
+        console.log("Sending support request:", formData); // Добавьте логирование
+        await ApiService.sendSupportRequest(formData);
+        setSuccessMessage("Your support request has been sent successfully.");
+        setErrorMessage("");
+        setFormData({ email: "", problemType: "", description: "" });
+    } catch (err) {
+        console.error("Error sending support request:", err.response || err.message);
+        setErrorMessage("Failed to send support request. Please try again.");
+    }
+};
 
   return (
     <Box
