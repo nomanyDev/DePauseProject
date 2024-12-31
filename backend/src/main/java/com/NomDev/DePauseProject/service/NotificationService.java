@@ -23,5 +23,13 @@ public class NotificationService {
 
         }
     }
+    public void sendSupportEmail(String email, String problemType, String description) {
+        String subject = "Support Request: " + problemType;
+        String body = "You have received a new support request.\n\n"
+                + "From: " + email + "\n"
+                + "Problem Type: " + problemType + "\n"
+                + "Description:\n" + description;
+        sendEmail("noreplydepause@gmail.com", subject, body);
+    }
 }
 

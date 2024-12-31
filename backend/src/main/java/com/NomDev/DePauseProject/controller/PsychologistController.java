@@ -61,6 +61,7 @@ public class PsychologistController {
             Authentication authentication
     ) {
         String email = authentication.getName();
+        System.out.println("Edit Profile Request: " + request); // check
         Response response = psychologistService.editPsychologistProfile(email, request);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }

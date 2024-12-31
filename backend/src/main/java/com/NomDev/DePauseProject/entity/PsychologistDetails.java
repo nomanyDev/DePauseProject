@@ -29,6 +29,7 @@ public class PsychologistDetails {
     @Enumerated(EnumType.STRING)
     private List<TherapyType> therapyTypes = new ArrayList<>();
 
+
     private Double rating;
 
     private BigDecimal price;

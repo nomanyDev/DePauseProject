@@ -5,6 +5,7 @@ import com.NomDev.DePauseProject.dto.PsychologistDTO;
 import com.NomDev.DePauseProject.dto.ReviewDTO;
 import com.NomDev.DePauseProject.dto.UserDTO;
 import com.NomDev.DePauseProject.entity.*;
+import com.NomDev.DePauseProject.repository.ReviewRepository;
 
 import java.security.SecureRandom;
 import java.util.List;
@@ -56,7 +57,6 @@ public class Utils {
         dto.setEducation(details.getEducation());
         dto.setExperience(details.getExperience());
 
-
         List<String> therapyTypeStrings = details.getTherapyTypes().stream()
                 .map(TherapyType::toString)
                 .collect(Collectors.toList());
@@ -64,14 +64,20 @@ public class Utils {
 
         dto.setRating(details.getRating());
         dto.setPrice(details.getPrice());
-        dto.setDescription(details.getUser().getFirstName() + " " + details.getUser().getLastName());
+        dto.setDescription(details.getDescription());
         dto.setCertificateUrls(details.getCertificateUrls());
 
-
         if (details.getUser() != null) {
+            // Добавляем данные из User
             dto.setProfilePhotoUrl(details.getUser().getProfilePhotoUrl());
+            dto.setAge(details.getUser().getAge()); // Используем метод getAge()
+            dto.setFirstName(details.getUser().getFirstName());
+            dto.setLastName(details.getUser().getLastName());
         } else {
             dto.setProfilePhotoUrl(null);
+            dto.setAge(null);
+            dto.setFirstName(null);
+            dto.setLastName(null);
         }
 
         return dto;
@@ -80,14 +86,18 @@ public class Utils {
     /**
      * Map Appointment entity to AppointmentDTO.
      */
-    public static AppointmentDTO mapAppointmentToDTO(Appointment appointment) {
+    public static AppointmentDTO mapAppointmentToDTO(Appointment appointment, ReviewRepository reviewRepository) {
         AppointmentDTO dto = new AppointmentDTO();
         dto.setId(appointment.getId());
         dto.setAppointmentTime(appointment.getAppointmentTime());
         dto.setStatus(appointment.getStatus());
         dto.setTherapyType(appointment.getTherapyType());
         dto.setUser(mapUserToDTO(appointment.getUser()));
-        dto.setPsychologist(mapPsychologistToDTO(appointment.getPsychologist())); // Исправлено
+        dto.setPsychologist(mapPsychologistToDTO(appointment.getPsychologist()));
+
+        //hasReview for appointment history page
+        boolean hasReview = reviewRepository.existsByAppointmentId(appointment.getId());
+        dto.setHasReview(hasReview);
 
         return dto;
     }
@@ -111,8 +121,10 @@ public class Utils {
     /**
      * Map a list of Appointment entities to a list of AppointmentDTOs.
      */
-    public static List<AppointmentDTO> mapAppointmentListToDTOList(List<Appointment> appointmentList) {
-        return appointmentList.stream().map(Utils::mapAppointmentToDTO).collect(Collectors.toList());
+    public static List<AppointmentDTO> mapAppointmentListToDTOList(List<Appointment> appointmentList, ReviewRepository reviewRepository) {
+        return appointmentList.stream()
+                .map(appointment -> mapAppointmentToDTO(appointment, reviewRepository)) // Передаем reviewRepository
+                .collect(Collectors.toList());
     }
 
     public static ReviewDTO mapReviewToDTO(Review review) {

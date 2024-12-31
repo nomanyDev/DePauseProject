@@ -30,6 +30,13 @@ export default class ApiService {
         console.log("Login response:", response.data);
         return response.data;
     }
+    static async sendSupportRequest(data) {
+        const response = await axios.post(`${this.BASE_URL}/support/send`, data, {
+            headers: this.getHeader(),
+        });
+        return response.data;
+    }
+
 
     /** USER CONTROLLER */
     static async getAllUsers(page = 0, size = 10) {
@@ -165,9 +172,23 @@ export default class ApiService {
     }
 
     static async updateAvailability(psychologistId, availableDates) {
-        const response = await axios.put(`${this.BASE_URL}/appointments/update-availability`, { psychologistId, availableDates }, {
-            headers: this.getHeader(),
-        });
+        const response = await axios.put(
+            `${this.BASE_URL}/appointments/update-availability?psychologistId=${psychologistId}`,
+            availableDates, 
+            {
+                headers: this.getHeader(),
+            }
+        );
+        return response.data;
+    }
+    static async updateAvailabilitySlots(psychologistId, slots) {
+        const response = await axios.put(
+            `${this.BASE_URL}/appointments/update-slots?psychologistId=${psychologistId}`,
+            slots, 
+            {
+                headers: this.getHeader(),
+            }
+        );
         return response.data;
     }
 

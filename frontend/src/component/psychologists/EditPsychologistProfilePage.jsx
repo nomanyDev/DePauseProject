@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Container,
   TextField,
@@ -9,6 +10,7 @@ import {
   FormGroup,
   FormControlLabel,
   Checkbox,
+  CircularProgress,
 } from "@mui/material";
 import ApiService from "../../service/ApiService";
 
@@ -23,39 +25,40 @@ const reverseTherapyTypeMapping = Object.fromEntries(
   Object.entries(therapyTypeMapping).map(([key, value]) => [value, key])
 );
 
-const EditPsychologistPage = ({ psychologistId }) => {
-  const [psychologistData, setPsychologistData] = useState({
-    education: "",
-    experience: "",
-    therapyTypes: [],
-    price: "",
-    rating: "",
-    description: "",
-    certificateUrls: [],
-  });
+const EditPsychologistPage = () => {
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const psychologistId = queryParams.get("psychologistId");
 
+  const [psychologistData, setPsychologistData] = useState(null);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch psychologist data on mount
   useEffect(() => {
     const fetchPsychologistData = async () => {
+      if (!psychologistId) {
+        setError("Psychologist ID is missing.");
+        setLoading(false);
+        return;
+      }
+
       try {
         const data = await ApiService.getPsychologistById(psychologistId);
         setPsychologistData({
-          education: data.education || "",
-          experience: data.experience || "",
-          therapyTypes: (data.therapyTypes || []).map(
-            (type) => reverseTherapyTypeMapping[type] // Convert ENUM to display string
+          education: data.psychologist.education || "",
+          experience: data.psychologist.experience || "",
+          therapyTypes: (data.psychologist.therapyTypes || []).map(
+            (type) => reverseTherapyTypeMapping[type] || type
           ),
-          price: data.price || "",
-          rating: data.rating || "",
-          description: data.description || "",
-          certificateUrls: data.certificateUrls || [],
+          price: data.psychologist.price || "",
+          description: data.psychologist.description || "",
         });
+        setLoading(false);
       } catch (err) {
         console.error("Error fetching psychologist data:", err.message);
-        
+        setError("Failed to load profile data.");
+        setLoading(false);
       }
     };
 
@@ -64,46 +67,76 @@ const EditPsychologistPage = ({ psychologistId }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setPsychologistData({ ...psychologistData, [name]: value });
+    setPsychologistData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
   const handleTherapyTypeToggle = (therapyType) => {
-    const selectedType = therapyTypeMapping[therapyType]; // Convert display string to ENUM
     setPsychologistData((prevData) => {
-      const isAlreadySelected = prevData.therapyTypes.includes(therapyType);
-      const updatedTypes = isAlreadySelected
+      const isSelected = prevData.therapyTypes.includes(therapyType);
+      const updatedTherapyTypes = isSelected
         ? prevData.therapyTypes.filter((type) => type !== therapyType)
         : [...prevData.therapyTypes, therapyType];
-
+      const validTherapyTypes = updatedTherapyTypes.filter(
+        (type) => therapyTypeMapping[type]
+      );
       return {
         ...prevData,
-        therapyTypes: updatedTypes,
+        therapyTypes: validTherapyTypes,
       };
     });
   };
 
   const handleSubmit = async () => {
-    try {
-        
-        const updatedData = {
-            ...psychologistData,
-            therapyTypes: psychologistData.therapyTypes.map(
-                (type) => therapyTypeMapping[type] 
-            ),
-        };
-
-        console.log("Data sent to API:", updatedData); 
-        await ApiService.editPsychologistProfile(updatedData);
-        setSuccess("Psychologist profile updated successfully!");
-        setError("");
-    } catch (err) {
-        console.error("Error updating psychologist profile:", err.message);
-        setError(
-            err.response?.data?.message || "Failed to update profile. Please try again."
-        );
-        setSuccess("");
+    if (!psychologistData) {
+      setError("No data to submit.");
+      return;
     }
-};
+
+    try {
+      const updatedData = {
+        education: psychologistData.education,
+        experience: psychologistData.experience,
+        therapyTypes: psychologistData.therapyTypes.map(
+          (type) => therapyTypeMapping[type]
+        ),
+        price: psychologistData.price,
+        description: psychologistData.description,
+      };
+
+      await ApiService.editPsychologistProfile(updatedData);
+      setSuccess(true);
+      setError("");
+    } catch (err) {
+      console.error("Error updating psychologist profile:", err.message);
+      setError(
+        err.response?.data?.message || "Failed to update profile. Please try again."
+      );
+      setSuccess(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Container>
+        <Box sx={{ textAlign: "center", mt: 5 }}>
+          <CircularProgress />
+        </Box>
+      </Container>
+    );
+  }
+
+  if (!psychologistData) {
+    return (
+      <Container>
+        <Typography variant="h6" color="error" sx={{ textAlign: "center", mt: 5 }}>
+          {error || "No data available."}
+        </Typography>
+      </Container>
+    );
+  }
 
   return (
     <Container>
@@ -120,7 +153,7 @@ const EditPsychologistPage = ({ psychologistId }) => {
           Edit Psychologist Profile
         </Typography>
         {error && <Alert severity="error">{error}</Alert>}
-        {success && <Alert severity="success">{success}</Alert>}
+        {success && <Alert severity="success">Profile updated successfully!</Alert>}
         <TextField
           fullWidth
           margin="normal"
@@ -146,7 +179,6 @@ const EditPsychologistPage = ({ psychologistId }) => {
           value={psychologistData.price}
           onChange={handleChange}
         />
-      
         <TextField
           fullWidth
           margin="normal"
@@ -157,7 +189,7 @@ const EditPsychologistPage = ({ psychologistId }) => {
           value={psychologistData.description}
           onChange={handleChange}
         />
-        {/*<Box sx={{ mt: 2 }}>
+        <Box sx={{ mt: 2 }}>
           <Typography variant="h6">Therapy Types</Typography>
           <FormGroup row>
             {Object.keys(therapyTypeMapping).map((therapyType) => (
@@ -173,7 +205,7 @@ const EditPsychologistPage = ({ psychologistId }) => {
               />
             ))}
           </FormGroup>
-        </Box> */}
+        </Box>
         <Button
           variant="contained"
           color="primary"

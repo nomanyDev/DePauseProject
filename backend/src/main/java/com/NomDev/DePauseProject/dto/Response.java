@@ -34,6 +34,7 @@ public class Response {
 
     private List<String> availableDates;
 
+    private Object data;
 
 }
 

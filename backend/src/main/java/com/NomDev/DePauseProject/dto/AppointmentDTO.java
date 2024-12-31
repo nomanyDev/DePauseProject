@@ -12,4 +12,5 @@ public class AppointmentDTO {
     private String therapyType;
     private UserDTO user;
     private PsychologistDTO psychologist;
+    private boolean hasReview;
 }

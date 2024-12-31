@@ -20,7 +20,7 @@ const BookAppointmentPage = ({ psychologistId, onClose }) => {
   const [success, setSuccess] = useState("");
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
-  const [userId, setUserId] = useState(null); 
+  const [userId, setUserId] = useState(null);
 
   const therapyTypes = [
     { value: "INDIVIDUAL", label: "Individual Therapy" },
@@ -54,23 +54,25 @@ const BookAppointmentPage = ({ psychologistId, onClose }) => {
     setSelectedSlot("");
     setError("");
     setSuccess("");
-  
+
     if (!date) return;
-  
+
     setLoadingSlots(true);
     try {
       console.log("Fetching available slots for date:", date, "Psychologist ID:", psychologistId);
       const response = await ApiService.getAvailableTimeSlots(psychologistId, date);
       console.log("Available slots response:", response);
-  
-      let slots = response.availableDates || [];
-      if (slots.length === 0) {
-        
-        slots = generateDefaultSlots();
-        console.log("Default slots generated:", slots);
-      }
-  
-      setAvailableSlots(slots);
+
+      const baseSlots = generateDefaultSlots();
+
+      // Убираем слоты с статусами BLOCKED и BOOKED
+      const unavailableSlots = (response.data || [])
+        .filter((slot) => slot.status === "BLOCKED" || slot.status === "BOOKED")
+        .map((slot) => `${slot.startTime} - ${slot.endTime}`);
+
+      const availableSlots = baseSlots.filter((slot) => !unavailableSlots.includes(slot));
+
+      setAvailableSlots(availableSlots);
     } catch (err) {
       console.error("Error fetching available slots:", err.message);
       setError("Failed to fetch available time slots. Please try again.");
@@ -78,15 +80,15 @@ const BookAppointmentPage = ({ psychologistId, onClose }) => {
       setLoadingSlots(false);
     }
   };
-  
-  // Генерация слотов с 9:00 до 20:00
+
   const generateDefaultSlots = () => {
     const startHour = 9;
     const endHour = 20;
     const slots = [];
     for (let hour = startHour; hour < endHour; hour++) {
       const time = `${hour.toString().padStart(2, '0')}:00`;
-      slots.push(time);
+      const nextTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
+      slots.push(`${time} - ${nextTime}`);
     }
     return slots;
   };
@@ -102,7 +104,7 @@ const BookAppointmentPage = ({ psychologistId, onClose }) => {
     setBookingLoading(true);
 
     try {
-      const appointmentTime = `${selectedDate}T${selectedSlot}:59`; 
+      const appointmentTime = `${selectedDate}T${selectedSlot.split(" - ")[0]}`;
 
       await ApiService.bookAppointment({
         userId,
@@ -197,7 +199,7 @@ const BookAppointmentPage = ({ psychologistId, onClose }) => {
           >
             {bookingLoading ? <CircularProgress size={24} /> : "Book Appointment"}
           </Button>
-          <Button variant="outlined" color="secondary" onClick={onClose}>
+          <Button variant="outlined" color="info" onClick={onClose}>
             Cancel
           </Button>
         </Box>

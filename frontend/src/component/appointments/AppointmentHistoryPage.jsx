@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Container, Box, Typography, Card, CardContent, Pagination, Button } from "@mui/material";
+import { Container, Box, Typography, Card, CardContent, Button } from "@mui/material";
+import PsychologistPagination from "../common/Pagination";
 import { useNavigate } from "react-router-dom";
 import ApiService from "../../service/ApiService";
 
@@ -15,30 +16,19 @@ const AppointmentHistoryPage = () => {
     const fetchProfileAndAppointments = async () => {
       try {
         const profile = await ApiService.fetchUserProfile();
-        console.log("Fetched profile:", profile);
+        const userRole = profile.user?.role;
 
-        const role = profile.user?.role; 
-        if (!role) {
+        if (!userRole) {
           setError("Invalid role. Please log in.");
           return;
         }
 
-        setRole(role);
+        setRole(userRole);
 
-        if (role === "USER") {
-          const userId = profile.user?.id;
-          if (!userId) {
-            throw new Error("User ID is missing in profile data");
-          }
-          fetchAppointmentsForUser(userId, currentPage);
-        } else if (role === "PSYCHOLOGIST") {
-          const psychologistId = profile.psychologist?.id; 
-          if (!psychologistId) {
-            throw new Error("Psychologist ID is missing in profile data");
-          }
-          fetchAppointmentsForPsychologist(psychologistId, currentPage);
-        } else {
-          setError("Invalid role. Please log in.");
+        if (userRole === "USER") {
+          fetchAppointmentsForUser(profile.user.id, currentPage);
+        } else if (userRole === "PSYCHOLOGIST") {
+          fetchAppointmentsForPsychologist(profile.psychologist.id, currentPage);
         }
       } catch (err) {
         console.error("Error fetching profile:", err.message);
@@ -51,38 +41,47 @@ const AppointmentHistoryPage = () => {
 
   const fetchAppointmentsForUser = async (userId, page) => {
     try {
-      console.log("Fetching appointments for user:", userId, "Page:", page);
       const response = await ApiService.getUserAppointments(userId, page, 10);
-
-      // Переворачиваем массив, чтобы последние элементы были первыми
-      const reversedAppointments = [...(response.page?.content || [])].reverse();
-
-      setAppointments(reversedAppointments);
+      setAppointments(response.page?.content || []);
       setTotalPages(response.page?.totalPages || 0);
     } catch (err) {
-      console.error("Error fetching appointments for user:", err.message);
+      console.error("Error fetching user appointments:", err.message);
       setError("Failed to fetch user appointments. Please try again.");
     }
   };
 
   const fetchAppointmentsForPsychologist = async (psychologistId, page) => {
     try {
-      console.log("Fetching appointments for psychologist:", psychologistId, "Page:", page);
       const response = await ApiService.getPsychologistAppointments(psychologistId, page, 10);
-
-      // reverse data from appointemnt to show from last added
-      const reversedAppointments = [...(response.page?.content || [])].reverse();
-
-      setAppointments(reversedAppointments);
+      setAppointments(response.page?.content || []);
       setTotalPages(response.page?.totalPages || 0);
     } catch (err) {
-      console.error("Error fetching appointments for psychologist:", err.message);
+      console.error("Error fetching psychologist appointments:", err.message);
       setError("Failed to fetch psychologist appointments. Please try again.");
     }
   };
 
-  const handlePageChange = (event, value) => {
-    setCurrentPage(value - 1);
+  const handleCancelAppointment = async (appointmentId) => {
+    try {
+      const confirmed = window.confirm("Are you sure you want to cancel this appointment?");
+      if (!confirmed) return;
+
+      const response = await ApiService.cancelAppointment(appointmentId);
+      setAppointments((prev) =>
+        prev.map((appointment) =>
+          appointment.id === appointmentId
+            ? { ...appointment, status: response.appointment.status }
+            : appointment
+        )
+      );
+    } catch (err) {
+      console.error("Error cancelling appointment:", err.message);
+      setError("Failed to cancel appointment.");
+    }
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -91,31 +90,36 @@ const AppointmentHistoryPage = () => {
         <Typography variant="h4" gutterBottom>
           Appointment History
         </Typography>
-        {error && (
-          <Typography variant="body1" color="error" gutterBottom>
-            {error}
-          </Typography>
-        )}
-        <Box>
-          {appointments.map((appointment) => (
-            <Card key={appointment.id} sx={{ mb: 2 }}>
-              <CardContent>
-                <Typography variant="h6">Appointment ID: {appointment.id}</Typography>
-                <Typography>
-                  Date and Time: {new Date(appointment.appointmentTime).toLocaleString()}
-                </Typography>
-                <Typography>Status: {appointment.status}</Typography>
-                <Typography>
-                  Psychologist: {appointment.psychologist?.description || "N/A"}
-                </Typography>
-                <Typography>
-                  Client: {appointment.user?.firstName} {appointment.user?.lastName || "N/A"}
-                </Typography>
-                {role === "USER" && (
-                  <Box sx={{ mt: 2 }}>
+        {error && <Typography color="error">{error}</Typography>}
+        {appointments.map((appointment) => (
+          <Card key={appointment.id} sx={{ mb: 2 }}>
+            <CardContent>
+              <Typography variant="h6">Appointment ID: {appointment.id}</Typography>
+              <Typography>
+                Date and Time: {new Date(appointment.appointmentTime).toLocaleString()}
+              </Typography>
+              <Typography>Status: {appointment.status}</Typography>
+              <Typography>
+                Psychologist: {appointment.psychologist?.firstName}{" "}
+                {appointment.psychologist?.lastName}
+              </Typography>
+              <Typography>
+                Client: {appointment.user?.firstName} {appointment.user?.lastName}
+              </Typography>
+              {role === "USER" && (
+                <Box sx={{ mt: 2 }}>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    disabled={appointment.status === "Cancelled"}
+                    onClick={() => handleCancelAppointment(appointment.id)}
+                  >
+                    {appointment.status === "Cancelled" ? "Cancelled" : "Cancel Appointment"}
+                  </Button>
+                  <Box sx={{ mt: 1 }}>
                     {appointment.hasReview ? (
                       <Button
-                        variant="outlined"
+                        variant="contained"
                         color="secondary"
                         onClick={() =>
                           navigate(`/psychologists/${appointment.psychologist.id}/reviews`)
@@ -135,19 +139,16 @@ const AppointmentHistoryPage = () => {
                       </Button>
                     )}
                   </Box>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </Box>
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-          <Pagination
-            count={totalPages}
-            page={currentPage + 1}
-            onChange={handlePageChange}
-            color="primary"
-          />
-        </Box>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+        <PsychologistPagination
+          totalPages={totalPages}
+          currentPage={currentPage}
+          onPageChange={handlePageChange}
+        />
       </Box>
     </Container>
   );

@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -76,38 +77,48 @@ public class PsychologistService implements IPsychologistService {
     public Response editPsychologistProfile(String email, EditPsychologistRequest request) {
         Response response = new Response();
         try {
-
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new OurException("Psychologist not found"));
 
-
             PsychologistDetails details = user.getPsychologistDetails();
-            if (details == null) {
+            System.out.println("Existing Psychologist Details ID: " + details.getId());
 
+            if (details == null) {
                 details = new PsychologistDetails();
                 details.setUser(user);
                 user.setPsychologistDetails(details);
             }
 
-
             if (request.getEducation() != null) details.setEducation(request.getEducation());
             if (request.getExperience() != null) details.setExperience(request.getExperience());
-            if (request.getTherapyTypes() != null) details.setTherapyTypes(
-                    request.getTherapyTypes().stream().map(TherapyType::valueOf).toList());
+
+            if (request.getTherapyTypes() != null) {
+                List<TherapyType> therapyTypeList = request.getTherapyTypes().stream()
+                        .map(type -> {
+                            try {
+                                return TherapyType.valueOf(type);
+                            } catch (IllegalArgumentException e) {
+                                throw new OurException("Invalid therapy type: " + type);
+                            }
+                        })
+                        .toList();
+
+                details.getTherapyTypes().clear();
+                details.getTherapyTypes().addAll(therapyTypeList);
+            }
+
             if (request.getPrice() != null) details.setPrice(request.getPrice());
             if (request.getDescription() != null) details.setDescription(request.getDescription());
 
-
-            Double averageRating = reviewRepository.findByPsychologistId(details.getId(), Pageable.unpaged())
-                    .getContent()
-                    .stream()
-                    .mapToInt(Review::getRating)
-                    .average()
-                    .orElse(0.0);
-            if (!averageRating.isNaN()) {
+            if (details.getId() != null) {
+                Double averageRating = reviewRepository.findByPsychologistId(details.getId(), Pageable.unpaged())
+                        .getContent()
+                        .stream()
+                        .mapToInt(Review::getRating)
+                        .average()
+                        .orElse(0.0);
                 details.setRating(averageRating);
             }
-
 
             psychologistDetailsRepository.save(details);
 
@@ -122,6 +133,7 @@ public class PsychologistService implements IPsychologistService {
         }
         return response;
     }
+
 
     @Override
     public Response deletePsychologist(Long id) {

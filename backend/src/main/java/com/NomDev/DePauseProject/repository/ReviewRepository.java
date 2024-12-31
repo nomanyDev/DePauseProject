@@ -17,5 +17,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query("SELECT AVG(r.rating) FROM Review r WHERE r.psychologist.id = :psychologistId")
     Double calculateAverageRatingByPsychologistId(@Param("psychologistId") Long psychologistId);
     boolean existsByUserIdAndPsychologistId(Long userId, Long psychologistId);
+    boolean existsByAppointmentId(Long appointmentId);
 
 }

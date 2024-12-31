@@ -19,6 +19,8 @@ import BookAppointmentPage from "./component/appointments/BookAppointmentPage.js
 import PsychologistReviewsPage from "./component/reviews/PsychologistReviewsPage.jsx";
 import CreateReviewPage from "./component/reviews/CreateReviewPage.jsx";
 import PsychologistProfile from './component/psychologists/PsychologistProfile';
+import AvailableDatesPage from "./component/appointments/AvailableDatesPage";
+
 
 const theme = createTheme({
     palette: {
@@ -68,6 +70,8 @@ function App() {
                                 <Route path="/psychologists/:psychologistId/reviews" element={<PsychologistReviewsPage />} />
                                 <Route path="/reviews/create" element={<CreateReviewPage />} />
                                 <Route path="/psychologists/:id" element={<PsychologistProfile />} />
+                                <Route path="/profile/manage-availability" element={<AvailableDatesPage />} />
+
 
                             </Routes>
                         </Box>

@@ -13,13 +13,18 @@ const PsychologistList = ({ psychologists }) => {
             {/* Фото психолога */}
             <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
               <Avatar
-                src={psychologist.photoUrl || "/default-avatar.png"}
-                alt={psychologist.description || "Psychologist"}
+                src={psychologist.profilePhotoUrl || "/default-avatar.png"}
+                alt={`${psychologist.firstName || "Name not specified"} ${psychologist.lastName || ""}`}
                 sx={{ width: 100, height: 100 }}
               />
             </Box>
             <CardContent sx={{ textAlign: "center" }}>
-              <Typography variant="h6">{psychologist.description || "No Name Provided"}</Typography>
+              {/* Имя психолога */}
+              <Typography variant="h6">
+                {psychologist.firstName && psychologist.lastName
+                  ? `${psychologist.firstName} ${psychologist.lastName}`
+                  : "Name not specified"}
+              </Typography>
               <Typography variant="body2" color="text.secondary">
                 Education: {psychologist.education || "Not specified"}
               </Typography>

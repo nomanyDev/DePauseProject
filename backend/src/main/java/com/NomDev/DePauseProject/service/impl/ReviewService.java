@@ -49,39 +49,31 @@ public class ReviewService implements IReviewService {
 
     @Override
     public ReviewDTO createReview(ReviewDTO reviewDTO) {
-
-        // if already exist
-        boolean reviewExists = reviewRepository.existsByUserIdAndPsychologistId(
-                reviewDTO.getUserId(),
-                reviewDTO.getPsychologistId()
-        );
-        if (reviewExists) {
-            throw new OurException("You have already submitted a review for this psychologist");
+        // Проверяем, существует ли отзыв для данного сеанса
+        boolean reviewExistsForAppointment = reviewRepository.existsByAppointmentId(reviewDTO.getAppointmentId());
+        if (reviewExistsForAppointment) {
+            throw new OurException("You have already submitted a review for this appointment");
         }
 
-        // check appointment by id
+        // Проверяем, существует ли сеанс
         Appointment appointment = appointmentRepository.findById(reviewDTO.getAppointmentId())
                 .orElseThrow(() -> new OurException("Appointment not found"));
 
-        // if user = user
+        // Проверяем, что пользователь совпадает с пользователем сеанса
         if (!appointment.getUser().getId().equals(reviewDTO.getUserId())) {
             throw new OurException("User does not match the appointment");
         }
 
-        // if Psychologist = Psychologist
+        // Проверяем, что психолог совпадает с психологом сеанса
         if (!appointment.getPsychologist().getId().equals(reviewDTO.getPsychologistId())) {
             throw new OurException("Psychologist does not match the appointment");
         }
-        /* if appointment not completed  (will add this validation later)
-        if (!"Completed".equalsIgnoreCase(appointment.getStatus())) {
-            throw new OurException("You can only review completed appointments");
-        }
-         */
 
+        // Создаем новый отзыв
         Review review = new Review();
         review.setContent(reviewDTO.getContent());
         review.setRating(reviewDTO.getRating());
-        review.setAppointment(appointment); // Устанавливаем связь с Appointment
+        review.setAppointment(appointment);
 
         PsychologistDetails psychologist = psychologistDetailsRepository.findById(reviewDTO.getPsychologistId())
                 .orElseThrow(() -> new OurException("Psychologist not found"));
@@ -93,7 +85,7 @@ public class ReviewService implements IReviewService {
 
         reviewRepository.save(review);
 
-        // avg rating for psychologist
+        // Обновляем средний рейтинг для психолога
         Double averageRating = calculateAverageRating(psychologist.getId());
         psychologist.setRating(averageRating);
         psychologistDetailsRepository.save(psychologist);

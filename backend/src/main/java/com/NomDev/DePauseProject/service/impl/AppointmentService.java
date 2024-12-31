@@ -5,10 +5,7 @@ import com.NomDev.DePauseProject.dto.AvailabilitySlotRequest;
 import com.NomDev.DePauseProject.dto.Response;
 import com.NomDev.DePauseProject.entity.*;
 import com.NomDev.DePauseProject.exception.OurException;
-import com.NomDev.DePauseProject.repository.AppointmentRepository;
-import com.NomDev.DePauseProject.repository.AvailabilityRepository;
-import com.NomDev.DePauseProject.repository.PsychologistDetailsRepository;
-import com.NomDev.DePauseProject.repository.UserRepository;
+import com.NomDev.DePauseProject.repository.*;
 import com.NomDev.DePauseProject.service.NotificationService;
 import com.NomDev.DePauseProject.service.interfaces.IAppointmentService;
 import com.NomDev.DePauseProject.utils.Utils;
@@ -21,7 +18,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class AppointmentService implements IAppointmentService {
@@ -40,6 +39,9 @@ public class AppointmentService implements IAppointmentService {
 
     @Autowired
     private AvailabilityRepository availabilityRepository;
+
+    @Autowired
+    private ReviewRepository reviewRepository;
 
 
     private boolean isAvailableDate(LocalDateTime requestedTime, List<Appointment> existingAppointments) {
@@ -75,20 +77,23 @@ public class AppointmentService implements IAppointmentService {
     public Response createAppointment(Long userId, Long psychologistId, LocalDateTime appointmentTime, String therapyType) {
         Response response = new Response();
         try {
+            // Проверка наличия пользователя
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new OurException("User not found"));
+
+            // Проверка наличия психолога
             PsychologistDetails psychologistDetails = psychologistDetailsRepository.findById(psychologistId)
                     .orElseThrow(() -> new OurException("Psychologist not found"));
 
+            // Проверяем доступность слота
             List<Appointment> existingAppointments = appointmentRepository.findByPsychologistId(psychologistId);
-
-
             if (!isAvailableDate(appointmentTime, existingAppointments)) {
                 response.setStatusCode(409); // Conflict
                 response.setMessage("The appointment time is already booked.");
                 return response;
             }
 
+            // Создание нового Appointment
             Appointment appointment = new Appointment();
             appointment.setUser(user);
             appointment.setPsychologist(psychologistDetails);
@@ -96,13 +101,43 @@ public class AppointmentService implements IAppointmentService {
             appointment.setTherapyType(therapyType);
             appointment.setStatus("Scheduled");
 
+            // Сохраняем Appointment
             Appointment savedAppointment = appointmentRepository.save(appointment);
 
-            AppointmentDTO appointmentDTO = Utils.mapAppointmentToDTO(savedAppointment);
+
+            // Получаем или создаем слот
+            Availability slot = availabilityRepository
+                    .findByPsychologistAndAvailableDateAndStartTime(
+                            psychologistDetails,
+                            appointmentTime.toLocalDate(),
+                            appointmentTime.toLocalTime()
+                    )
+                    .orElseGet(() -> {
+                        // Если слот не найден, создаем новый
+                        Availability newSlot = new Availability();
+                        newSlot.setPsychologist(psychologistDetails);
+                        newSlot.setAvailableDate(appointmentTime.toLocalDate());
+                        newSlot.setStartTime(appointmentTime.toLocalTime());
+                        newSlot.setEndTime(appointmentTime.toLocalTime().plusHours(1)); // Пример: 1 час длительности
+                        newSlot.setStatus(SlotStatus.BOOKED); // Помечаем как заблокированный
+                        return availabilityRepository.save(newSlot);
+                    });
+
+            // Если слот найден и статус не обновлен, обновляем его статус
+            if (slot.getStatus() != SlotStatus.BOOKED && slot.getStatus() != SlotStatus.BLOCKED) {
+                slot.setStatus(SlotStatus.BOOKED);
+                availabilityRepository.save(slot);
+            }
+
+            // Подготовка ответа
+            AppointmentDTO appointmentDTO = Utils.mapAppointmentToDTO(savedAppointment, reviewRepository);
             response.setStatusCode(201);
             response.setMessage("Appointment created successfully");
             response.setAppointment(appointmentDTO);
+            System.out.println("Setting status for slot: " + slot.getStatus());
 
+
+            // Отправляем уведомления
             sendNotificationsAsync(user, psychologistDetails, appointmentTime);
 
         } catch (OurException e) {
@@ -114,6 +149,8 @@ public class AppointmentService implements IAppointmentService {
         }
         return response;
     }
+
+
 
     @Async
     public void sendNotificationsAsync(User user, PsychologistDetails psychologist, LocalDateTime appointmentTime) {
@@ -140,7 +177,10 @@ public class AppointmentService implements IAppointmentService {
         Response response = new Response();
         try {
             Page<Appointment> appointments = appointmentRepository.findByUserId(userId, pageable);
-            Page<AppointmentDTO> appointmentDTOs = appointments.map(Utils::mapAppointmentToDTO);
+
+            Page<AppointmentDTO> appointmentDTOs = appointments.map(appointment ->
+                    Utils.mapAppointmentToDTO(appointment, reviewRepository)
+            );
 
             response.setStatusCode(200);
             response.setMessage("Appointments fetched successfully");
@@ -158,11 +198,15 @@ public class AppointmentService implements IAppointmentService {
         Response response = new Response();
         try {
             Page<Appointment> appointments = appointmentRepository.findByPsychologistId(psychologistId, pageable);
-            Page<AppointmentDTO> appointmentDTOs = appointments.map(Utils::mapAppointmentToDTO);
+
+            // Используем map для преобразования Appointment в AppointmentDTO
+            Page<AppointmentDTO> appointmentDTOs = appointments.map(appointment ->
+                    Utils.mapAppointmentToDTO(appointment, reviewRepository)
+            );
 
             response.setStatusCode(200);
             response.setMessage("Appointments fetched successfully");
-            response.setPage(appointmentDTOs);
+            response.setPage(appointmentDTOs); // Устанавливаем Page в ответе
 
         } catch (Exception e) {
             response.setStatusCode(500);
@@ -170,6 +214,7 @@ public class AppointmentService implements IAppointmentService {
         }
         return response;
     }
+
 
     @Override
     public Response cancelAppointment(Long appointmentId) {
@@ -181,7 +226,7 @@ public class AppointmentService implements IAppointmentService {
             appointment.setStatus("Cancelled");
             appointmentRepository.save(appointment);
 
-            AppointmentDTO appointmentDTO = Utils.mapAppointmentToDTO(appointment);
+            AppointmentDTO appointmentDTO = Utils.mapAppointmentToDTO(appointment,reviewRepository);
             response.setStatusCode(200);
             response.setMessage("Appointment cancelled successfully");
             response.setAppointment(appointmentDTO);
@@ -243,16 +288,29 @@ public class AppointmentService implements IAppointmentService {
     public Response getAvailableTimeSlots(Long psychologistId, LocalDate date) {
         Response response = new Response();
         try {
-            List<Availability> availableSlots = availabilityRepository
-                    .findByPsychologistIdAndAvailableDateAndStatus(psychologistId, date, SlotStatus.AVAILABLE);
+            PsychologistDetails psychologist = psychologistDetailsRepository.findById(psychologistId)
+                    .orElseThrow(() -> new OurException("Psychologist not found"));
 
-            List<String> timeSlots = availableSlots.stream()
-                    .map(slot -> slot.getStartTime() + " - " + slot.getEndTime())
+            List<Availability> allSlots = availabilityRepository.findByPsychologistAndAvailableDate(psychologist, date);
+
+            // Фильтруем только валидные записи
+            List<Map<String, String>> slotsWithStatus = allSlots.stream()
+                    .filter(slot -> slot.getStartTime() != null && slot.getEndTime() != null && slot.getStatus() != null) // Проверка на null
+                    .map(slot -> {
+                        Map<String, String> slotInfo = new HashMap<>();
+                        slotInfo.put("startTime", slot.getStartTime().toString());
+                        slotInfo.put("endTime", slot.getEndTime().toString());
+                        slotInfo.put("status", slot.getStatus().toString());
+                        return slotInfo;
+                    })
                     .toList();
 
             response.setStatusCode(200);
             response.setMessage("Available time slots fetched successfully");
-            response.setAvailableDates(timeSlots); // Сохраняем в поле типа List<String>
+            response.setData(slotsWithStatus);
+        } catch (OurException e) {
+            response.setStatusCode(404);
+            response.setMessage(e.getMessage());
         } catch (Exception e) {
             response.setStatusCode(500);
             response.setMessage("Error fetching available time slots: " + e.getMessage());

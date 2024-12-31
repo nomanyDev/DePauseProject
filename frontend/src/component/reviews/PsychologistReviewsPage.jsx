@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Box, Typography, Card, CardContent, Pagination, CircularProgress } from "@mui/material";
+import { Box, Typography, Card, CardContent, Pagination, CircularProgress, Rating } from "@mui/material";
 import ApiService from "../../service/ApiService";
 
 const PsychologistReviewsPage = () => {
@@ -78,10 +78,15 @@ const PsychologistReviewsPage = () => {
           {reviews.map((review) => (
             <Card key={review.id} sx={{ mb: 2 }}>
               <CardContent>
-                <Typography variant="h6">{review.content}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Rating: {review.rating}/5
+                <Typography variant="h6" gutterBottom>
+                  {review.content}
                 </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+                    Rating:
+                  </Typography>
+                  <Rating value={review.rating || 0} readOnly precision={0.5} />
+                </Box>
                 <Typography variant="caption" color="text.secondary">
                   User ID: {review.userId}
                 </Typography>

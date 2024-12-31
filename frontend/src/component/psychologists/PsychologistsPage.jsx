@@ -58,7 +58,7 @@ function PsychologistsPage() {
       );
     }
     const initials =
-      psychologist.description?.split(" ").map((name) => name[0]).join("").toUpperCase() || "P";
+      psychologist.firstName?.[0] + psychologist.lastName?.[0] || "P";
     return (
       <Avatar
         sx={{
@@ -96,7 +96,10 @@ function PsychologistsPage() {
               {getAvatar(psychologist)}
               <CardContent sx={{ flexGrow: 1, textAlign: "center" }}>
                 <Typography variant="h6" component="div" gutterBottom>
-                  {psychologist.description || "No Name Provided"}
+                  {psychologist.firstName} {psychologist.lastName || "No Name Provided"}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  <strong>Age:</strong> {psychologist.age || "Not specified"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   <strong>Education:</strong> {psychologist.education || "Not specified"}
@@ -110,6 +113,9 @@ function PsychologistsPage() {
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   <strong>Price:</strong> ${psychologist.price || "N/A"}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                  <strong>Description:</strong> {psychologist.description || "Not specified"}
                 </Typography>
                 <Box
                   sx={{
@@ -137,16 +143,6 @@ function PsychologistsPage() {
                   >
                     View Profile
                   </Button>
-                  {/* hidden 
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    fullWidth
-                    onClick={() => navigate(`/psychologists/${psychologist.id}/reviews`)}
-                  >
-                    View Reviews
-                  </Button>
-                  */}
                 </Box>
               </CardContent>
             </Card>

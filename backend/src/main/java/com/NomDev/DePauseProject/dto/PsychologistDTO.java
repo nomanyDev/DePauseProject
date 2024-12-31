@@ -8,6 +8,10 @@ import java.util.List;
 @Data
 public class PsychologistDTO {
     private Long id;
+    private Integer age;
+    private String firstName;
+    private String lastName;
+
     private String education;
     private String experience;
     private List<String> therapyTypes;
