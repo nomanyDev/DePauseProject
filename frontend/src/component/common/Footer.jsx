@@ -2,9 +2,18 @@ import React from "react";
 import { Box, Container, Typography, Link, IconButton } from "@mui/material";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import SchoolIcon from "@mui/icons-material/School";
-import GitHubIcon from "@mui/icons-material/GitHub"; 
+import GitHubIcon from "@mui/icons-material/GitHub";
+import ApiIcon from "@mui/icons-material/Api"; 
 
 function Footer() {
+  // URL Swagger
+  const swaggerUrl = "http://ec2-44-207-6-108.compute-1.amazonaws.com:8080/swagger-ui/index.html";
+
+  
+  const isServer =
+    window.location.hostname === "ec2-44-207-6-108.compute-1.amazonaws.com" ||
+    window.location.hostname === "44.207.6.108";
+
   return (
     <Box
       sx={{
@@ -59,6 +68,18 @@ function Footer() {
                 <GitHubIcon fontSize="large" />
               </IconButton>
             </Link>
+            {isServer && (
+              <Link
+                href={swaggerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{ color: "white" }}
+              >
+                <IconButton sx={{ color: "white" }}>
+                  <ApiIcon fontSize="large" />
+                </IconButton>
+              </Link>
+            )}
           </Box>
         </Box>
       </Container>

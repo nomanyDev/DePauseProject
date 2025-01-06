@@ -13,7 +13,7 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("DePause Project API with Swagger")
-                        .version("1.0")
+                        .version("2.0")
                         .description("API Documentation for DePause Project" +
                                 " NCI SoftDev , student x23252065"));
     }
