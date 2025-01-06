@@ -1,0 +1,9 @@
+services:
+  mysql-container:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_DATABASE: depause_db
+      MYSQL_ROOT_PASSWORD: nc1Best*
+    ports:
+      - "3306:3306"
