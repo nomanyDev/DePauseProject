@@ -4,6 +4,6 @@ services:
     restart: always
     environment:
       MYSQL_DATABASE: depause_db
-      MYSQL_ROOT_PASSWORD: nc1Best*
+      MYSQL_ROOT_PASSWORD: changed for security
     ports:
       - "3306:3306"
