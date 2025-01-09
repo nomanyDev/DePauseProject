@@ -8,4 +8,4 @@ services:
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://172.31.31.55:3306/depause_db
       - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=nc1Best*
+      - SPRING_DATASOURCE_PASSWORD= ask me pass if you want to test
